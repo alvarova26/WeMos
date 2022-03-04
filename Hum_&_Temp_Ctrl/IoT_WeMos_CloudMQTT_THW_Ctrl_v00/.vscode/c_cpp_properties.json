@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:\\Users\\92044377\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
+                "C:\\Users\\92044377\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.5.2\\**",
+                "${workspaceFolder}/**",
+                "C:/Users/92044377/AppData/Local/Arduino15/packages",
+                "C:/Users/92044377/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.5.2/libraries/ESP8266WiFi",
+                "C:/Users/92044377/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.5.2/libraries/**",
+                "C:/Users/92044377/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.5.2/libraries/Wire",
+                "C:/Users/92044377/Documents/Arduino/libraries/PubSubClient",
+                "C:/Users/92044377/Documents/Arduino/libraries/ArduinoJson",
+                "C:/Users/92044377/Documents/Arduino/libraries/Chrono",
+                "C:/Users/92044377/Documents/Arduino/libraries/HX711_Arduino_Library",
+                "C:/Users/92044377/Documents/Arduino/libraries/HTU21D_Humidity",
+                "C:/Users/92044377/Documents/Arduino/libraries/**",
+                "C:/Users/92044377/AppData/Local/Arduino15/packages/esp8266/hardware/esp8266/2.5.2/libraries/ESP8266WiFi/src/Arduino-master/tests/host/common"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "C://MinGW//bin//gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64",
+            "forcedInclude": []
+        }
+    ],
+    "version": 4
+}
