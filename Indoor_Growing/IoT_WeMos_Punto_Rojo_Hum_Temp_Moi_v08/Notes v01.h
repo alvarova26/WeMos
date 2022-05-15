@@ -61,9 +61,10 @@ Tools=>Board=>ESP8266 Boards (3.0.1)... look up for LOLIN(WeMos) D1 R1.
 Tools=>Manage Libraries... look up for "PubSubClient by Nick O'Leary".
   * Version as today(20210706): v2.8.0.
 Tools=>Manage Libraries... look up for "ArduinoJson by Benoit Blanchon".
-  * Must be very carefull chosing the version. This code uses v5.13.0.
-    Versions higher than v5.x.x changes completly the code.
-    Future versions of this code will use the most recent library, but must be updated first.
+  * Must be very carefull chosing the version of the library. The current version of the code
+    uses v6.x.x - has been updated since v07.
+    Older version of this code use the older version of the library - changes completely!!!
+    Be very carefull.
 Tools=>Manage Libraries... look up for "DHT sensor library by Adafruit".
   * Version as today(20210706): v1.4.2.
     This library needs another one: Adafruit Unified Sensor (install it as well)
@@ -208,7 +209,7 @@ Refer to MQTT Panel App on the cellphone
 */
 
 /* ############################## Note: Update header of PubSubClient.h
-MQTT_MAX_PACKET_SIZE defined in the library header MUST BE INCREASED (from 256 to 2048) to allow larger payloads in client.publish() method
+MQTT_MAX_PACKET_SIZE defined in the library header MUST BE INCREASED (from 256 to 1024) to allow larger payloads in client.publish() method
 C:\Users\Alvaro\Documents\Arduino\libraries\PubSubClient\src => PubSubClient.h
 */
 
