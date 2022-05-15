@@ -208,7 +208,7 @@ Refer to MQTT Panel App on the cellphone
 */
 
 /* ############################## Note: Update header of PubSubClient.h
-MQTT_MAX_PACKET_SIZE defined in the library header MUST BE INCREASED to allow larger payloads in client.publish() method
+MQTT_MAX_PACKET_SIZE defined in the library header MUST BE INCREASED (from 256 to 2048) to allow larger payloads in client.publish() method
 C:\Users\Alvaro\Documents\Arduino\libraries\PubSubClient\src => PubSubClient.h
 */
 
