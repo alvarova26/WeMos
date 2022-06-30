@@ -151,6 +151,9 @@ int alt_ill_count = 0;                            //Counter for follow up the st
 int alt_ill_per = 1;                              //Code for period of time for alternating illumination (1 = 1min | 2 = 5min | and so on)
 int alt_ill_cyc = 6;                              //Period of time for alternating illumination (6 = 1min | 30 = 5min | and so on)
 
+// ############################## 12/24 Operation Mode
+bool opmode_1224 = 0;                             //Flag for operation mode (0 = 24hs ON | 1 = 12hs alternating ON/OFF ) - if received, calls oper_mode();
+
 // ############################## Miscellaneous Parameters
 float rssi_val_raw = 0;                           //Will store the RSSI measuremente form ESP8266
 float value_mea = 0;                              //Value of the measurement to be printed. Sent by reference to print_measurements() auxiliar function
@@ -207,6 +210,7 @@ void setup_chrono();                              //FUNCTION OK
 void get_chrono();                                //FUNCTION OK
 void print_chrono();                              //FUNCTION OK
 void time_keeper();                               //FUNCTION OK
+void oper_mode();                                 //FUNCTION NOK - WORKING ON IT
 
 /* ################################################################################################### */
 /* ################################################################################################### */
@@ -236,7 +240,7 @@ void loop()
   mqtt_loop();                                    //MQTT keep alive
   tem_logic();                                    //Calls the function to read Temperature from DTH22
   hum_logic();                                    //Calls the function to read Humidity from DTH22
-  moi_logic();                                    //Calls the function to read moisture from MOI
+  moi_logic();                                    //Calls the function to read Moisture from MOI
   check_illum();                                  //Calls the function to verify the illumination status (alternate)
   get_chrono();                                   //Calls the funciton to read the time has passed
   print_chrono();                                 //Prints just for control (line will be deleted)
