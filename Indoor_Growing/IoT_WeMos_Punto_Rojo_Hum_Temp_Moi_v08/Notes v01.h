@@ -22,6 +22,7 @@ IoT_WeMos_Punto_Rojo_Hum_Temp_Moi_v07
 IoT_WeMos_Punto_Rojo_Hum_Temp_Moi_v08
   => Code improved to keep the running time (with Chrono library and the millis() function).
   => Actually, just for running time  millis() is used. Chrono could be used in future applications.
+  => Improving the code to allow the cental LED turn ON and OFF automatcially (refer to code updated 20220630)
 */
 
 /* ############################## Project's Description
@@ -119,6 +120,8 @@ This three LED's relays will allow seven different configurations of illuminatio
 |  x   ||  .   ||  .   ||  x   ||  x   ||  .   ||  x   |
 |.____.||.____x||x____.||.____x||x____.||x____x||x____x|
   VLOW    LOWA    LOWB    MIDA    MIDB    HIGH    VHIG
+* An additional configuration has been added: ON/OFF operation - to allow the central LED to be turned
+on and off autmatically.
 
 And five different levels of illumination:
 Very Low  =>  LED_A's relay activated
@@ -126,6 +129,7 @@ Low (x2)  =>  LED_B's or LED_C's relay activated
 Mid (x2)  =>  LED_A's and (LED_B's or LED_C's) relays activated
 High      =>  LED_B's and LED_C's relays activated
 Very Hig  =>  LED_A's and LED_B's and LED_C's relays activated
+* ONOFF   =>  LED_A's relay alternating the status ON/OFF
 
 On the other hand, the only one remaining relay will control the FANs for air circulation
 Circulation   => FAN_A's realys activated
