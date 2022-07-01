@@ -754,6 +754,10 @@ void update_WeMos(String inputmsg)
         case 9:
           set_illumination('i');
         break;
+
+        case 10:
+          set_illumination('j');
+        break;
       }
     }
 
@@ -785,6 +789,10 @@ void update_WeMos(String inputmsg)
 
         case 6:
           alt_ill_cyc = 180;                        //Period set to 30 min => 180 cycles of 10 sec each = 1800 seconds 
+        break;
+
+        case 7:
+          alt_ill_cyc = 4320;                       //Period set to 12 hs => 4320 cycles of 10 sec each = 43200 seconds 
         break;
       }
     }
@@ -1341,16 +1349,17 @@ void set_illumination(char illc)
 {
   /* Received parameters values:
     code:
-      "x" => OFF Illumination: All LEDs OFF             (5 LEDs OFF)
-      "a" => VLOW Illumination: Only central LED ON     (1 LEDs ON in total)
-      "b" => LOWA Illumination: Only \ LEDs ON          (2 LEDs ON in total)
-      "c" => LOWB Illumination: Only / LEDs ON          (2 LEDs ON in total)
-      "d" => MIDA Illumination: Central and \ LEDs ON   (3 LEDs ON in total)
-      "e" => MIDB Illumination: Central and / LEDs ON   (3 LEDs ON in total)
-      "f" => HIGH Illumination: Only \ and / LEDs ON    (4 LEDs ON in total)
-      "g" => VHIG Illumination: All LEDs ON             (5 LEDs ON in total)
-      "h" => LOWR Illumination: Alternating LOWA-B      (2 LED ON in total)
-      "i" => MIDR Illumination: Alternating MIDA-B      (3 LEDs ON in total)
+      "x" => OFF Illumination: All LEDs OFF                         (5 LEDs OFF)
+      "a" => VLOW Illumination: Only central LED ON                 (1 LEDs ON in total)
+      "b" => LOWA Illumination: Only \ LEDs ON                      (2 LEDs ON in total)
+      "c" => LOWB Illumination: Only / LEDs ON                      (2 LEDs ON in total)
+      "d" => MIDA Illumination: Central and \ LEDs ON               (3 LEDs ON in total)
+      "e" => MIDB Illumination: Central and / LEDs ON               (3 LEDs ON in total)
+      "f" => HIGH Illumination: Only \ and / LEDs ON                (4 LEDs ON in total)
+      "g" => VHIG Illumination: All LEDs ON                         (5 LEDs ON in total)
+      "h" => LOWR Illumination: Alternating LOWA-B                  (2 LED ON in total)
+      "i" => MIDR Illumination: Alternating MIDA-B                  (3 LEDs ON in total)
+      "j" => ONOF Illumination: Alternating central LED ON-OFF      (1 LEDs ON/OFF in total)
   */
   switch (illc)
   {
@@ -1515,6 +1524,13 @@ void set_illumination(char illc)
 
     case 'i':
       illumin_stat = 9;                             //Set the code for illumination
+      alt_ill_count = alt_ill_cyc;
+      alt_ill_stat = 1;
+      check_illum();
+    break;
+
+    case 'j':
+      illumin_stat = 10;                            //Set the code for illumination
       alt_ill_count = alt_ill_cyc;
       alt_ill_stat = 1;
       check_illum();
@@ -1732,6 +1748,64 @@ void check_illum()
             digitalWrite(LED_C_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_C OFF
             LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
             Serial.println("======================================== WeMos Illumination Set to MIDA | End");
+            alt_ill_count = alt_ill_cyc;
+          }
+        }
+      }
+    }
+  }
+
+  if (illumin_stat == 10)                         //Alternate ON/OFF Illumination (Central LED)
+  {
+    if (alt_ill_stat)
+    {
+      Serial.println("======================================== WeMos Illumination Set to ONOFF | Begin");
+      digitalWrite(LED_A_PIN, LOW);               //Write LOW (0V) on the DIGITAL PIN (realy activated) - LED_A ON
+      LED_A_stat = 1;                             //Update the value of the boolean variable to follow up the status
+      digitalWrite(LED_B_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_B OFF
+      LED_B_stat = 0;                             //Update the value of the boolean variable to follow up the status
+      digitalWrite(LED_C_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_C OFF
+      LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
+      set_airflow('o');                           //Update the Air Flow to ON
+      Serial.println("======================================== WeMos Illumination Set to ONOFF | End");
+      alt_ill_count = alt_ill_count - 1;
+      alt_ill_stat = 0;
+
+    }
+    else
+    {
+      if (alt_ill_count > 0)
+      {
+        alt_ill_count = alt_ill_count - 1;
+      }
+      else
+      {
+        if ((LED_A_stat == 1) && (LED_B_stat == 0) && (LED_C_stat == 0))
+        {
+          Serial.println("======================================== WeMos Illumination Set to OFFON | Begin");
+          digitalWrite(LED_A_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_A OFF
+          LED_A_stat = 0;                             //Update the value of the boolean variable to follow up the status
+          digitalWrite(LED_B_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_B OFF
+          LED_B_stat = 0;                             //Update the value of the boolean variable to follow up the status
+          digitalWrite(LED_C_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_C OFF
+          LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
+          set_airflow('x');                           //Update the Air Flow to OFF
+          Serial.println("======================================== WeMos Illumination Set to OFFON | End");
+          alt_ill_count = alt_ill_cyc;
+        }
+        else
+        {
+          if ((LED_A_stat == 0) && (LED_B_stat == 0) && (LED_C_stat == 0))
+          {
+            Serial.println("======================================== WeMos Illumination Set to ONOFF | Begin");
+            digitalWrite(LED_A_PIN, LOW);               //Write LOW (0V) on the DIGITAL PIN (realy activated) - LED_A ON
+            LED_A_stat = 1;                             //Update the value of the boolean variable to follow up the status
+            digitalWrite(LED_B_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_B OFF
+            LED_B_stat = 0;                             //Update the value of the boolean variable to follow up the status
+            digitalWrite(LED_C_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_C OFF
+            LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
+            set_airflow('o');                           //Update the Air Flow to ON
+            Serial.println("======================================== WeMos Illumination Set to ONOFF | End");
             alt_ill_count = alt_ill_cyc;
           }
         }
