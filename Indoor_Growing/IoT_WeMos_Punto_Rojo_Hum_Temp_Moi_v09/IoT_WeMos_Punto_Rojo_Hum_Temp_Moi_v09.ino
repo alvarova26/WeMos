@@ -1678,7 +1678,7 @@ void clear_mem(char clrc)
 // ############################## AUX FUNCTIONS
 void check_illum()
 {
-  if (illumin_stat == 8)                          //Alternate LOW Illumination Levels
+  if (illumin_stat == 8)                          //Rotating LOW Illumination Levels
   {
     if (rot_ill_stat)
     {
@@ -1732,7 +1732,7 @@ void check_illum()
     }
   }
 
-  if (illumin_stat == 9)                          //Alternate MID Illumination Levels
+  if (illumin_stat == 9)                          //Rotating MID Illumination Levels
   {
     if (rot_ill_stat)
     {
@@ -1786,7 +1786,7 @@ void check_illum()
     }
   }
 
-  if (illumin_stat == 10)                         //Alternate ON/OFF Illumination (Central LED)
+  if (illumin_stat == 10)                         //ON/OFF Illumination (Central LED)
   {
     if (rot_ill_stat)
     {
