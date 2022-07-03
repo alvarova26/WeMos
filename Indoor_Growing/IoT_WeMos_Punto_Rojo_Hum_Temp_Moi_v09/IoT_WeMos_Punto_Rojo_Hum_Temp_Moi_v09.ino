@@ -554,8 +554,8 @@ void publish_readings()
   JSONDocTX["ALILLC"] = String (rot_ill_count);     //Rotating counter - used to follow up how many cycles have been passed
   JSONDocTX["ALTMOD"] = String (rot_ill_mode);      //Rotating mode
   JSONDocTX["ONOFFM"] = String (onoff_ill_mode);    //ON/OFF mode (0 = OFF | 1 = 4hs ON - 4hs OFF | 2 = 8hs ON - 8hs OFF...and so on)
-  JSONDocTX["ONOFFY"] = String (onoff_ill_cyc);     //ON/OFF mode (0 = OFF | 1 = 4hs ON - 4hs OFF | 2 = 8hs ON - 8hs OFF...and so on)
-  JSONDocTX["ONOFFC"] = String (onoff_ill_count);   //ON/OFF mode (0 = OFF | 1 = 4hs ON - 4hs OFF | 2 = 8hs ON - 8hs OFF...and so on)
+  JSONDocTX["ONOFFY"] = String (onoff_ill_cyc);     //ON/OFF cycle's time equivalent (1 cycle = 10 seconds)
+  JSONDocTX["ONOFFC"] = String (onoff_ill_count);   //ON/OFF cycle counter
 
   // Publish Air Flow Status
   JSONDocTX["AIRSTA"] = String (airflow_sett);
