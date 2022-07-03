@@ -1905,8 +1905,7 @@ void set_onoff(char onoffc)
 
     case '1':
       onoff_ill_mode = 1;
-      //onoff_ill_cyc = 1440;                     //ON/OFF period set to 04 hs => 1440 cycles of 10 sec each = 14400 seconds 
-      onoff_ill_cyc = 6;     //test
+      onoff_ill_cyc = 1440;                     //ON/OFF period set to 04 hs => 1440 cycles of 10 sec each = 14400 seconds 
       onoff_ill_count = onoff_ill_cyc;
     break;
 
