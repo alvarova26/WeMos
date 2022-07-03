@@ -45,8 +45,8 @@ At the same time, WeMos will accept commands form MQTT Broker (Publish/subscribe
 #define A0    A0    //ANALOG                      => INPUT from MOISTURE sensor (Moisture of Soil)
 
 // ############################## WiFi Netwrok Parameters
-const char* ssid = "VIVOFIBRA-B178";              //Change this to your network SSID (name).
-const char* pass = "D4A4D07B83";                  //Change this your network password
+const char* ssid = "ALVARO1";                     //Change this to your network SSID (name).
+const char* pass = "zurdito2017";                 //Change this your network password
 
 // ############################## MQTT Broker Parameters
 const char* mqttServer = "m16.cloudmqtt.com";     //Server MQTT
