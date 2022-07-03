@@ -153,15 +153,17 @@ int illumin_sett = 0;                             //Code for follow up the setti
 int rot_ill_mode = 0;                             //Code for the rotating illumination mode (0 = OFF | 1 = ON)
 int rot_ill_count = 0;                            //Counter for follow up the status of the rotating illumination
 int rot_ill_per = 1;                              //Code for period of time for rotating illumination (1 = 1min | 2 = 5min | and so on)
-int rot_ill_cyc = 6;                              //Period of time for rotating illumination (6 = 1min | 30 = 5min | and so on)
+int rot_ill_cyc = 6;                              //Period of time for rotating illumination (1 cycle = 10 seconds => 6 = 1min | 30 = 5min | and so on)
 int onoff_ill_mode = 0;                           //Code for the on/off illumination mode (0 = OFF | 1 = 4hs ON - 4hs OFF | and so on...)
 int onoff_ill_count = 0;                          //Counter for follow up the status of the on/off illumination
-int onoff_ill_per = 7;                            //Code for period of time for on/off illumination (1 = 1min | 2 = 5min | and so on)
-int onoff_ill_cyc = 6;                            //Period of time for on/off illumination (6 = 1min | 30 = 5min | and so on)
+int onoff_ill_cyc = 0;                            //Period of time for on/off illumination (1 cycle = 10 seconds)
 char illc = 'u';                                  //Illumination code (see function for details) sent/received via MQTT to choose the level of illumination in the setup
 char airc = 'u';                                  //Air Flow code (0=OFF | 1=ON) sent/received via MQTT to turn ON/OFF the FANs
 char rotc = 'u';                                  //Code for rotating illumination settings
 char onoffc = 'u';                                //Code for on/off illumination settings
+int prev_illum = 0;                               //Variable to store the previous status of illumination
+int prev_airfl = 0;                               //Variable to store the previous status of ariflow
+bool global_off = 0;                              //Flag for preventing counters to add up during the 'off' time (onoff_ill_mode)
 
 // ############################## Miscellaneous Parameters
 float rssi_val_raw = 0;                           //Will store the RSSI measuremente form ESP8266
@@ -203,9 +205,9 @@ void update_WeMos(String inputmsg);               //FUNCTION OK
 void tem_logic();                                 //FUNCTION OK
 void hum_logic();                                 //FUNCTION OK
 void moi_logic();                                 //FUNCTION OK
-void set_illumination(char illc);                 //working on it
-void set_rotation(char rotc);                     //working on it
-void set_onoff(char onoffc);                      //working on it
+void set_illumination(char illc);                 //FUNCTION OK
+void set_rotation(char rotc);                     //FUNCTION OK
+void set_onoff(char onoffc);                      //FUNCTION OK
 void set_airflow(char airc);                      //FUNCTION OK
 void clear_mem(char clrc);                        //FUNCTION OK
 void check_illum();                               //working on it
@@ -546,12 +548,14 @@ void publish_readings()
   JSONDocTX["MOIALC"] = String (moi_ala_cou);
 
   // Publish Illumination Status
-  JSONDocTX["ILLSET"] = String (illumin_sett);    //Illumination setting (how many LEDs ON/OFF)
-  JSONDocTX["ALILLP"] = String (rot_ill_per);     //Rotating period
-  JSONDocTX["ALILLY"] = String (rot_ill_cyc);     //Rotating cycle - used to set up the amount of time
-  JSONDocTX["ALILLC"] = String (rot_ill_count);   //Rotating counter - used to follow up how many cycles have been passed
-  JSONDocTX["ALTMOD"] = String (rot_ill_mode);    //Rotating mode
-  JSONDocTX["ONOFFM"] = String (onoff_ill_mode);  //ON/OFF mode (0 = OFF | 1 = 4hs ON - 4hs OFF | 2 = 8hs ON - 8hs OFF...and so on)
+  JSONDocTX["ILLSET"] = String (illumin_sett);      //Illumination setting (how many LEDs ON/OFF)
+  JSONDocTX["ALILLP"] = String (rot_ill_per);       //Rotating period
+  JSONDocTX["ALILLY"] = String (rot_ill_cyc);       //Rotating cycle - used to set up the amount of time
+  JSONDocTX["ALILLC"] = String (rot_ill_count);     //Rotating counter - used to follow up how many cycles have been passed
+  JSONDocTX["ALTMOD"] = String (rot_ill_mode);      //Rotating mode
+  JSONDocTX["ONOFFM"] = String (onoff_ill_mode);    //ON/OFF mode (0 = OFF | 1 = 4hs ON - 4hs OFF | 2 = 8hs ON - 8hs OFF...and so on)
+  JSONDocTX["ONOFFY"] = String (onoff_ill_cyc);     //ON/OFF mode (0 = OFF | 1 = 4hs ON - 4hs OFF | 2 = 8hs ON - 8hs OFF...and so on)
+  JSONDocTX["ONOFFC"] = String (onoff_ill_count);   //ON/OFF mode (0 = OFF | 1 = 4hs ON - 4hs OFF | 2 = 8hs ON - 8hs OFF...and so on)
 
   // Publish Air Flow Status
   JSONDocTX["AIRSTA"] = String (airflow_sett);
@@ -577,7 +581,7 @@ void publish_readings()
   JSONDocTX["RSSIWI"] = String (WiFi.RSSI());
   JSONDocTX["RUNCHR"] = String (chrono_time) + String ("sec");
   JSONDocTX["RUNTIM"] = String (days) + String("d ") + String (hours) + String(":") + String (minutes) + String(":") + String (seconds);
-  JSONDocTX["SW_VER"] = String ("v08 - 20220703");
+  JSONDocTX["SW_VER"] = String ("v09 - 20220703");
 
   char JSONBufferTX[1024];                        //Define a buffer to Tx the data
   serializeJson(JSONDocTX, JSONBufferTX, sizeof(JSONBufferTX));//Serialize the JSONDocTX into JSONBufferTX
@@ -808,19 +812,19 @@ void update_WeMos(String inputmsg)
       switch (onoff_ill_mode)
       {
         case 0:
-          set_onoff('0')                              //ON/OFF mode disabled (set to work permanently) 
+          set_onoff('0');                              //ON/OFF mode disabled (set to work permanently) 
         break;
 
         case 1:
-          set_onoff('1')                              //ON/OFF period set to 04 hs => 1440 cycles of 10 sec each = 14400 seconds 
+          set_onoff('1');                             //ON/OFF period set to 04 hs => 1440 cycles of 10 sec each = 14400 seconds 
         break;
 
         case 2:
-          set_onoff('2')                              //ON/OFF period set to 08 hs => 2880 cycles of 10 sec each = 28800 seconds 
+          set_onoff('2');                              //ON/OFF period set to 08 hs => 2880 cycles of 10 sec each = 28800 seconds 
         break;
 
         case 3:
-          set_onoff('3')                              //ON/OFF period set to 12 hs => 4320 cycles of 10 sec each = 43200 seconds 
+          set_onoff('3');                             //ON/OFF period set to 12 hs => 4320 cycles of 10 sec each = 43200 seconds 
         break;
       }
     }
@@ -1392,7 +1396,6 @@ void check_illum()
       LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
       Serial.println("======================================== WeMos Illumination Set to OFF | End");
     }
-    illumin_sett = 0;                             //Set the code for illumination
   }
   if (illumin_sett == 1)                        //"a" => VLOW Illumination: Only central LED ON
   {
@@ -1411,7 +1414,6 @@ void check_illum()
         LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to VLOW | End");
       }
-      illumin_sett = 1;                             //Set the code for illumination
     }
   if (illumin_sett == 2)                        //"b" => LOWA Illumination: Only \ LEDs ON
   {
@@ -1430,7 +1432,6 @@ void check_illum()
         LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to LOWA | End");
       }
-      illumin_sett = 2;                             //Set the code for illumination
   }
   if (illumin_sett == 3)                        //"c" => LOWB Illumination: Only / LEDs ON
   {
@@ -1449,7 +1450,6 @@ void check_illum()
         LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to LOWB | End");
       }
-      illumin_sett = 3;                             //Set the code for illumination
   }
   if (illumin_sett == 4)                        //"d" => MIDA Illumination: Central and \ LEDs ON
   {
@@ -1468,7 +1468,6 @@ void check_illum()
         LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to MIDA | End");
       }
-      illumin_sett = 4;                             //Set the code for illumination
   }
   if (illumin_sett == 5)                        //"e" => MIDB Illumination: Central and / LEDs ON
   {
@@ -1487,7 +1486,6 @@ void check_illum()
         LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to MIDB | End");
       }
-      illumin_sett = 5;                             //Set the code for illumination
   }
   if (illumin_sett == 6)                        //"f" => HIGH Illumination: Only \ and / LEDs ON
   {
@@ -1506,7 +1504,6 @@ void check_illum()
         LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to HIGH | End");
       }
-      illumin_sett = 6;                             //Set the code for illumination
   }
   if (illumin_sett == 7)                        //"g" => VHIG Illumination: All LEDs ON
   {
@@ -1525,14 +1522,13 @@ void check_illum()
         LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to VHIG | End");
       }
-      illumin_sett = 7;                             //Set the code for illumination
   }
 }
 
 // ############################## AUX FUNCTIONS
 void check_rot()
 {
-  if ((illumin_sett == 2) || (illumin_sett == 3))     //Rotating LOW Illumination Levels
+  if (global_off == 0)
   {
     if (rot_ill_count > 0)
     {
@@ -1540,68 +1536,44 @@ void check_rot()
     }
     else
     {
-      if ((LED_A_stat == 0) && (LED_B_stat == 1) && (LED_C_stat == 0))
+      rot_ill_count = rot_ill_cyc;
+      switch (illumin_sett)
       {
-        Serial.println("======================================== WeMos Illumination Set to LOWB | Begin");
-        digitalWrite(LED_A_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_A OFF
-        LED_A_stat = 0;                             //Update the value of the boolean variable to follow up the status
-        digitalWrite(LED_B_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_B OFF
-        LED_B_stat = 0;                             //Update the value of the boolean variable to follow up the status
-        digitalWrite(LED_C_PIN, LOW);               //Write LOW (0V) on the DIGITAL PIN (realy activated) - LED_C ON
-        LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
-        Serial.println("======================================== WeMos Illumination Set to LOWB | End");
-        rot_ill_count = rot_ill_cyc;
-        illumin_sett = 3;
-      }
-      if ((LED_A_stat == 0) && (LED_B_stat == 0) && (LED_C_stat == 1))
-      {
-        Serial.println("======================================== WeMos Illumination Set to LOWA | Begin");
-        digitalWrite(LED_A_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_A OFF
-        LED_A_stat = 0;                             //Update the value of the boolean variable to follow up the status
-        digitalWrite(LED_B_PIN, LOW);               //Write LOW (0V) on the DIGITAL PIN (realy activated) - LED_B ON
-        LED_B_stat = 1;                             //Update the value of the boolean variable to follow up the status
-        digitalWrite(LED_C_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_C OFF
-        LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
-        Serial.println("======================================== WeMos Illumination Set to LOWA | End");
-        rot_ill_count = rot_ill_cyc;
-        illumin_sett = 2;
-      }
-    }
-  }
+        case 0:                                         //No rotation due to Illuminations Levels
+          set_illumination('x');                        //Set to 0
+          break;
 
-  if ((illumin_sett == 4) || (illumin_sett == 5))     //Rotating MID Illumination Levels
-  {
-    if (rot_ill_count > 0)
-    {
-      rot_ill_count = rot_ill_count - 1;
-    }
-    else
-    {
-      if ((LED_A_stat == 1) && (LED_B_stat == 1) && (LED_C_stat == 0))
-      {
-        Serial.println("======================================== WeMos Illumination Set to MIDB | Begin");
-        digitalWrite(LED_A_PIN, LOW);               //Write LOW (0V) on the DIGITAL PIN (realy activated) - LED_A ON
-        LED_A_stat = 1;                             //Update the value of the boolean variable to follow up the status
-        digitalWrite(LED_B_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_B OFF
-        LED_B_stat = 0;                             //Update the value of the boolean variable to follow up the status
-        digitalWrite(LED_C_PIN, LOW);               //Write LOW (0V) on the DIGITAL PIN (realy activated) - LED_C ON
-        LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
-        Serial.println("======================================== WeMos Illumination Set to MIDB | End");
-        rot_ill_count = rot_ill_cyc;
-        illumin_sett = 5;
-      }
-      if ((LED_A_stat == 1) && (LED_B_stat == 0) && (LED_C_stat == 1))
-      {
-        Serial.println("======================================== WeMos Illumination Set to MIDA | Begin");
-        digitalWrite(LED_A_PIN, LOW);               //Write LOW (0V) on the DIGITAL PIN (realy activated) - LED_A ON
-        LED_A_stat = 1;                             //Update the value of the boolean variable to follow up the status
-        digitalWrite(LED_B_PIN, LOW);               //Write LOW (0V) on the DIGITAL PIN (realy activated) - LED_B ON
-        LED_B_stat = 1;                             //Update the value of the boolean variable to follow up the status
-        digitalWrite(LED_C_PIN, HIGH);              //Write HIGH (3V) on the DIGITAL PIN (realy deactivated) - LED_C OFF
-        LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
-        Serial.println("======================================== WeMos Illumination Set to MIDA | End");
-        rot_ill_count = rot_ill_cyc;
-        illumin_sett = 4;
+        case 1:                                         //No rotation due to Illuminations Levels
+          set_illumination('a');
+          break;
+
+        case 2:                                         //Rotating LOW Illumination Levels
+          set_illumination('c');
+          break;
+
+        case 3:                                         //Rotating LOW Illumination Levels
+          set_illumination('b');
+          break;
+
+        case 4:                                         //Rotating MID Illumination Levels
+          set_illumination('e');
+          break;
+
+        case 5:                                         //Rotating MID Illumination Levels
+          set_illumination('d');
+          break;
+
+        case 6:                                         //No rotation due to Illuminations Levels
+          set_illumination('f');
+          break;
+
+        case 7:                                         //No rotation due to Illuminations Levels
+          set_illumination('g');
+          break;
+
+        defualt:
+          Serial.println("Something went wrong. Check HW & code."); //Print the auxiliar text to Serial Comm (USB)
+        break;
       }
     }
   }
@@ -1610,7 +1582,7 @@ void check_rot()
 // ############################## AUX FUNCTIONS
 void check_onoff()
 {
-  if (onoff_ill_mode <> 0)
+  if (onoff_ill_mode != 0)
   {
     if (onoff_ill_count > 0)
     {
@@ -1618,14 +1590,15 @@ void check_onoff()
     }
     else
     {
+      onoff_ill_count = onoff_ill_cyc;
       if (onoff_ill_stat == 0)
       {
         prev_illum = illumin_sett;
         prev_airfl = airflow_sett;
         set_illumination('x');
         set_airflow('x');
-        onoff_ill_count = onoff_ill_cyc;
         onoff_ill_stat = 1;
+        global_off = 1;
       }
       else
       {
@@ -1663,7 +1636,6 @@ void check_onoff()
             set_illumination('g');
             break;
         }
-
         switch (prev_airfl)
         {
           case 0:
@@ -1671,12 +1643,11 @@ void check_onoff()
             break;
 
           case 1:
-            set_airflow('x');
+            set_airflow('o');
             break;
         }
-
-        onoff_ill_count = onoff_ill_cyc;
         onoff_ill_stat = 0;
+        global_off = 0;
       }
     }
   }
@@ -1699,6 +1670,8 @@ void set_illumination(char illc)
   switch (illc)
   {
     case 'x':
+      illumin_sett = 0;                             //Set the code for illumination
+      rot_ill_count = rot_ill_cyc;                  //Reset the rotation cyclic counter
       if ((LED_A_stat == 0) && (LED_B_stat == 0) && (LED_C_stat == 0))
       {
         Serial.println("Illumination already set to OFF");
@@ -1714,10 +1687,11 @@ void set_illumination(char illc)
         LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to OFF | End");
       }
-      illumin_sett = 0;                             //Set the code for illumination
     break;
 
     case 'a':
+      illumin_sett = 1;                             //Set the code for illumination
+      rot_ill_count = rot_ill_cyc;                  //Reset the rotation cyclic counter
       if ((LED_A_stat == 1) && (LED_B_stat == 0) && (LED_C_stat == 0))
       {
         Serial.println("Illumination already set to VLOW");
@@ -1733,10 +1707,11 @@ void set_illumination(char illc)
         LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to VLOW | End");
       }
-      illumin_sett = 1;                             //Set the code for illumination
     break;
 
     case 'b':
+      illumin_sett = 2;                             //Set the code for illumination
+      rot_ill_count = rot_ill_cyc;                  //Reset the rotation cyclic counter
       if ((LED_A_stat == 0) && (LED_B_stat == 1) && (LED_C_stat == 0))
       {
         Serial.println("Illumination already set to LOWA");
@@ -1752,10 +1727,11 @@ void set_illumination(char illc)
         LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to LOWA | End");
       }
-      illumin_sett = 2;                             //Set the code for illumination
     break;
 
     case 'c':
+      illumin_sett = 3;                             //Set the code for illumination
+      rot_ill_count = rot_ill_cyc;                  //Reset the rotation cyclic counter
       if ((LED_A_stat == 0) && (LED_B_stat == 0) && (LED_C_stat == 1))
       {
         Serial.println("Illumination already set to LOWB");
@@ -1771,10 +1747,11 @@ void set_illumination(char illc)
         LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to LOWB | End");
       }
-      illumin_sett = 3;                             //Set the code for illumination
     break;
 
     case 'd':
+      illumin_sett = 4;                             //Set the code for illumination
+      rot_ill_count = rot_ill_cyc;                  //Reset the rotation cyclic counter
       if ((LED_A_stat == 1) && (LED_B_stat == 1) && (LED_C_stat == 0))
       {
         Serial.println("Illumination already set to MIDA");
@@ -1790,10 +1767,11 @@ void set_illumination(char illc)
         LED_C_stat = 0;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to MIDA | End");
       }
-      illumin_sett = 4;                             //Set the code for illumination
     break;
 
     case 'e':
+      illumin_sett = 5;                             //Set the code for illumination
+      rot_ill_count = rot_ill_cyc;                  //Reset the rotation cyclic counter
       if ((LED_A_stat == 1) && (LED_B_stat == 0) && (LED_C_stat == 1))
       {
         Serial.println("Illumination already set to MIDB");
@@ -1809,10 +1787,11 @@ void set_illumination(char illc)
         LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to MIDB | End");
       }
-      illumin_sett = 5;                             //Set the code for illumination
     break;
 
     case 'f':
+      illumin_sett = 6;                             //Set the code for illumination
+      rot_ill_count = rot_ill_cyc;                  //Reset the rotation cyclic counter
       if ((LED_A_stat == 0) && (LED_B_stat == 1) && (LED_C_stat == 1))
       {
         Serial.println("Illumination already set to HIGH");
@@ -1828,10 +1807,11 @@ void set_illumination(char illc)
         LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to HIGH | End");
       }
-      illumin_sett = 6;                             //Set the code for illumination
     break;
 
     case 'g':
+      illumin_sett = 7;                             //Set the code for illumination
+      rot_ill_count = rot_ill_cyc;                  //Reset the rotation cyclic counter
       if ((LED_A_stat == 1) && (LED_B_stat == 1) && (LED_C_stat == 1))
       {
         Serial.println("Illumination already set to VHIG");
@@ -1847,7 +1827,6 @@ void set_illumination(char illc)
         LED_C_stat = 1;                             //Update the value of the boolean variable to follow up the status
         Serial.println("======================================== WeMos Illumination Set to VHIG | End");
       }
-      illumin_sett = 7;                             //Set the code for illumination
     break;
 
     defualt:
@@ -1871,30 +1850,37 @@ void set_rotation(char rotc)
   switch (rotc)
   {
     case '1':
+      rot_ill_per = 1;
       rot_ill_cyc = 6;                          //Period set to 01 min => 6 cycles of 10 sec each = 60 seconds 
+      rot_ill_count =rot_ill_cyc;
     break;
 
     case '2':
+      rot_ill_per = 2;
       rot_ill_cyc = 30;                         //Period set to 05 min => 30 cycles of 10 sec each = 300 seconds 
       rot_ill_count =rot_ill_cyc;
     break;
 
     case '3':
+      rot_ill_per = 3;
       rot_ill_cyc = 60;                         //Period set to 10 min => 60 cycles of 10 sec each = 600 seconds 
       rot_ill_count =rot_ill_cyc;
     break;
 
     case '4':
+      rot_ill_per = 4;
       rot_ill_cyc = 90;                         //Period set to 15 min => 90 cycles of 10 sec each = 900 seconds 
       rot_ill_count =rot_ill_cyc;
     break;
 
     case '5':
+      rot_ill_per = 5;
       rot_ill_cyc = 120;                        //Period set to 20 min => 120 cycles of 10 sec each = 1200 seconds 
       rot_ill_count =rot_ill_cyc;
     break;
 
     case '6':
+      rot_ill_per = 6;
       rot_ill_cyc = 180;                        //Period set to 30 min => 180 cycles of 10 sec each = 1800 seconds 
       rot_ill_count =rot_ill_cyc;
     break;
@@ -1919,7 +1905,8 @@ void set_onoff(char onoffc)
 
     case '1':
       onoff_ill_mode = 1;
-      onoff_ill_cyc = 1440;                     //ON/OFF period set to 04 hs => 1440 cycles of 10 sec each = 14400 seconds 
+      //onoff_ill_cyc = 1440;                     //ON/OFF period set to 04 hs => 1440 cycles of 10 sec each = 14400 seconds 
+      onoff_ill_cyc = 6;     //test
       onoff_ill_count = onoff_ill_cyc;
     break;
 
