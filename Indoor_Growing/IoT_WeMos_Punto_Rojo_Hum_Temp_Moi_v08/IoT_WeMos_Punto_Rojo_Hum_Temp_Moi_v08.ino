@@ -788,7 +788,7 @@ void update_WeMos(String inputmsg)
         break;
       
         case 7:
-          alt_ill_cyc = 3;                       //Period set to 12 hs => 4320 cycles of 10 sec each = 43200 seconds 
+          alt_ill_cyc = 4320;                       //Period set to 12 hs => 4320 cycles of 10 sec each = 43200 seconds 
         break;
       }
     }
