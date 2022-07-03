@@ -761,10 +761,6 @@ void update_WeMos(String inputmsg)
         case 9:
           set_illumination('i');
         break;
-
-        case 10:
-          set_illumination('j');
-        break;
       }
     }
 
@@ -797,7 +793,7 @@ void update_WeMos(String inputmsg)
         case 6:
           rot_ill_cyc = 180;                        //Period set to 30 min => 180 cycles of 10 sec each = 1800 seconds 
         break;
-
+      
         case 7:
           rot_ill_cyc = 4320;                       //Period set to 12 hs => 4320 cycles of 10 sec each = 43200 seconds 
         break;
@@ -1380,17 +1376,16 @@ void set_illumination(char illc)
 {
   /* Received parameters values:
     code:
-      "x" => OFF Illumination: All LEDs OFF                         (5 LEDs OFF)
-      "a" => VLOW Illumination: Only central LED ON                 (1 LEDs ON in total)
-      "b" => LOWA Illumination: Only \ LEDs ON                      (2 LEDs ON in total)
-      "c" => LOWB Illumination: Only / LEDs ON                      (2 LEDs ON in total)
-      "d" => MIDA Illumination: Central and \ LEDs ON               (3 LEDs ON in total)
-      "e" => MIDB Illumination: Central and / LEDs ON               (3 LEDs ON in total)
-      "f" => HIGH Illumination: Only \ and / LEDs ON                (4 LEDs ON in total)
-      "g" => VHIG Illumination: All LEDs ON                         (5 LEDs ON in total)
-      "h" => LOWR Illumination: Alternating LOWA-B                  (2 LED ON in total)
-      "i" => MIDR Illumination: Alternating MIDA-B                  (3 LEDs ON in total)
-      "j" => ONOF Illumination: Alternating central LED ON-OFF      (1 LEDs ON/OFF in total)
+      "x" => OFF Illumination: All LEDs OFF             (5 LEDs OFF)
+      "a" => VLOW Illumination: Only central LED ON     (1 LEDs ON in total)
+      "b" => LOWA Illumination: Only \ LEDs ON          (2 LEDs ON in total)
+      "c" => LOWB Illumination: Only / LEDs ON          (2 LEDs ON in total)
+      "d" => MIDA Illumination: Central and \ LEDs ON   (3 LEDs ON in total)
+      "e" => MIDB Illumination: Central and / LEDs ON   (3 LEDs ON in total)
+      "f" => HIGH Illumination: Only \ and / LEDs ON    (4 LEDs ON in total)
+      "g" => VHIG Illumination: All LEDs ON             (5 LEDs ON in total)
+      "h" => LOWR Illumination: Alternating LOWA-B      (2 LED ON in total)
+      "i" => MIDR Illumination: Alternating MIDA-B      (3 LEDs ON in total)
   */
   switch (illc)
   {
