@@ -23,6 +23,9 @@ IoT_WeMos_Punto_Rojo_Hum_Temp_Moi_v08
   => Code improved to keep the running time (with Chrono library and the millis() function).
   => Actually, just for running time  millis() is used. Chrono could be used in future applications.
   => Improving the code to allow the cental LED turn ON and OFF automatcially (refer to code updated 20220630)
+IoT_WeMos_Punto_Rojo_Hum_Temp_Moi_v09
+  => Improving the code to allow ON/OFF alternation and rotation of LEDs (refer to code updated 20220703)
+  => Imroveing strategy with new functions (check_illum(), check_onoff(), check_rot(), etc).
 */
 
 /* ############################## Project's Description
@@ -120,7 +123,7 @@ This three LED's relays will allow seven different configurations of illuminatio
 |  x   ||  .   ||  .   ||  x   ||  x   ||  .   ||  x   |
 |.____.||.____x||x____.||.____x||x____.||x____x||x____x|
   VLOW    LOWA    LOWB    MIDA    MIDB    HIGH    VHIG
-* An additional configuration has been added: ON/OFF operation - to allow the central LED to be turned
+* An additional configuration has been added: ON/OFF operation - to allow the LEDs to be turned
 on and off autmatically.
 
 And five different levels of illumination:
@@ -137,6 +140,34 @@ Circulation   => FAN_A's realys activated
 If digitalWrite(PIN, HIGH)  => Writes 3V to PIN => Relay Deactivated => Original NO/NC status.
 If digitalWrite(PIN, LOW)   => Writes 0V to PIN => Relay Activated => Inverted NO/NC status
 */
+
+/* ############################## Function mapping
+void set_illumination(char illc)
+    0 <=> "x" => OFF Illumination: All LEDs OFF                         (5 LEDs OFF)
+    1 <=> "a" => VLOW Illumination: Only central LED ON                 (1 LEDs ON in total)
+    2 <=> "b" => LOWA Illumination: Only \ LEDs ON                      (2 LEDs ON in total)
+    3 <=> "c" => LOWB Illumination: Only / LEDs ON                      (2 LEDs ON in total)
+    4 <=> "d" => MIDA Illumination: Central and \ LEDs ON               (3 LEDs ON in total)
+    5 <=> "e" => MIDB Illumination: Central and / LEDs ON               (3 LEDs ON in total)
+    6 <=> "f" => HIGH Illumination: Only \ and / LEDs ON                (4 LEDs ON in total)
+    7 <=> "g" => VHIG Illumination: All LEDs ON                         (5 LEDs ON in total)
+
+void set_rotation(char rotc)
+    1 <=> '1' =>  Rotation period set to 01 min => 6 cycles of 10 sec each = 60 seconds 
+    2 <=> '2' =>  Rotation period set to 05 min => 30 cycles of 10 sec each = 300 seconds 
+    3 <=> '3' =>  Rotation period set to 10 min => 60 cycles of 10 sec each = 600 seconds 
+    4 <=> '4' =>  Rotation period set to 15 min => 90 cycles of 10 sec each = 900 seconds 
+    5 <=> '5' =>  Rotation period set to 20 min => 120 cycles of 10 sec each = 1200 seconds 
+    6 <=> '6' =>  Rotation period set to 30 min => 180 cycles of 10 sec each = 1800 seconds 
+
+void set_onoff(char onoffc)
+    0 <=> '0' =>  ON/OFF mode disabled (set to work permanently) 
+    1 <=> '1' =>  ON/OFF period set to 04 hs => 1440 cycles of 10 sec each = 14400 seconds 
+    2 <=> '2' =>  ON/OFF period set to 08 hs => 2880 cycles of 10 sec each = 28800 seconds 
+    3 <=> '3' =>  ON/OFF period set to 12 hs => 4320 cycles of 10 sec each = 43200 seconds 
+*/
+
+
 
 /* ############################## Wiring
 The wiring will be done using 2 (two) DB9 Serial connectors and UTP LAN cables (8 wires at total).
